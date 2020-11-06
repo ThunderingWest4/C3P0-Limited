@@ -6,7 +6,7 @@ import io
 def getData(path):
     lines = io.open(path, encoding='UTF-8').read().strip().split('\n')
     # n_total = 118964
-    pairs = [[preprocess(x) for x in l.split('\t')] for l in lines[:100000]]
+    pairs = [[preprocess(x) for x in l.split('\t')] for l in lines]
     en, sp = zip(*pairs) #make tuples from pairs
 
     en_tensor, en_tokenizer = tokenize(en)

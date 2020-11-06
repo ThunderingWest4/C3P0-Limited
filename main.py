@@ -23,4 +23,10 @@ path_to_zip = tf.keras.utils.get_file(
 
 en, es = dataset.getData(os.path.dirname(path_to_zip) + "\\spa-eng\\spa.txt")
 
+en_train = en[0:100000]
+es_train = es[0:100000]
+
+en_eval = en[100000:]
+es_eval = es[100000:]
+
 NMTAttn = network.NMTAttn()
