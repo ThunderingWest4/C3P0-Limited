@@ -1,8 +1,9 @@
 import numpy as np
 import tensorflow as tf
-import tensorflow_datasets as tfds
 import dataset
 from termcolor import colored
+import network
+import os
 
 print(colored("Successfully imported packages", "green"))
 
@@ -15,9 +16,11 @@ CITATION="""
     year = {2012}
 }
 """
+# Download the file
+path_to_zip = tf.keras.utils.get_file(
+    'spa-eng.zip', origin='http://storage.googleapis.com/download.tensorflow.org/data/spa-eng.zip',
+    extract=True)
 
-ds = dataset.getData()
+en, es = dataset.getData(os.path.dirname(path_to_zip) + "\\spa-eng\\spa.txt")
 
-for ex in ds.take(10):
-    print(colored(ex['en'], "blue"))
-    print(colored(ex['es'], "red"))
+NMTAttn = network.NMTAttn()
