@@ -10,4 +10,4 @@ He's familiar in over 6 million forms of communication and translation. I added 
 
 # Install Packages
 
-Using the default thing for pip (making a requirements.txt) didn't really work so instead, I just made a .sh file that runs pip commands to install each package with necessary specifications (i.e. tensorflow-datasets needs specific settings for 2020). I might fix it later but the focus is the ML Translator, not a requirements.txt file
+Using the default thing for pip (making a requirements.txt) didn't really work so instead, I just made a .sh file that runs pip commands to install each package with necessary specifications (i.e. tensorflow needs specific settings for 2020). I might fix it later but the focus is the ML Translator, not a requirements.txt file 
