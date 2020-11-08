@@ -21,12 +21,28 @@ path_to_zip = tf.keras.utils.get_file(
     'spa-eng.zip', origin='http://storage.googleapis.com/download.tensorflow.org/data/spa-eng.zip',
     extract=True)
 
-en, es = dataset.getData(os.path.dirname(path_to_zip) + "\\spa-eng\\spa.txt")
+en, es, en_map, es_map = dataset.getData(os.path.dirname(path_to_zip) + "\\spa-eng\\spa.txt")
 
 en_train = en[0:100000]
 es_train = es[0:100000]
 
 en_eval = en[100000:]
 es_eval = es[100000:]
+
+BUFFER_SIZE = len(en_train)
+BATCH_SIZE = 64
+STEPS_PER_EPOCH = BUFFER_SIZE // BATCH_SIZE
+EMBEDDING_DIM = 256
+UNITS = 1024
+VOCAB_INP_SIZE = len(en_map.word_index)+1
+VOCAB_OUT_SIZE = len(es_map.word_index)+1
+
+train_ds = tf.data.Dataset.from_tensor_slices((en_train, es_train)).shuffle(BUFFER_SIZE)
+train_ds = train_ds.batch(BATCH_SIZE, drop_remainder=True)
+
+eval_ds = tf.data.Dataset.from_tensor_slices((en_eval, es_eval)).shuffle(BUFFER_SIZE)
+eval_ds = eval_ds.batch(BATCH_SIZE, drop_remainder=True)
+
+print(dataset.detokenize(en_train[0], en_map) + " " + dataset.detokenize(es_train[0], es_map))
 
 NMTAttn = network.NMTAttn()

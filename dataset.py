@@ -9,15 +9,15 @@ def getData(path):
     pairs = [[preprocess(x) for x in l.split('\t')] for l in lines]
     en, sp = zip(*pairs) #make tuples from pairs
 
-    en_tensor, en_tokenizer = tokenize(en)
-    sp_tensor, sp_tokenizer = tokenize(sp)
+    en_tensor, en_map = tokenize(en)
+    sp_tensor, sp_map = tokenize(sp)
 
-    return en_tensor, sp_tensor
+    return en_tensor, sp_tensor, en_map, sp_map
 
-def uni_to_ascii(s):
+def uni_to_ascii(s) -> str:
     return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn') # ensuring it's not an accent
 
-def preprocess(w):
+def preprocess(w) -> str:
     w = uni_to_ascii(w.lower().strip())
 
     # make space between word and punct
@@ -33,7 +33,7 @@ def preprocess(w):
     
     return w
 
-def tokenize(lang):
+def tokenize(lang) -> (tf.Tensor, tf.keras.preprocessing.text.Tokenizer):
     lang_tokenizer = tf.keras.preprocessing.text.Tokenizer(filters='')
     lang_tokenizer.fit_on_texts(lang)
 
@@ -41,3 +41,10 @@ def tokenize(lang):
     tensor = tf.keras.preprocessing.sequence.pad_sequences(tensor, padding='post')
 
     return tensor, lang_tokenizer
+
+def detokenize(sequence, lang_map) -> str:
+    toRet = ""
+    for x in sequence:
+        if x != 0:
+            toRet += lang_map.index_word[x] + " "
+    return toRet
