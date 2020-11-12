@@ -1,11 +1,12 @@
 import numpy as np
 import tensorflow as tf
 import dataset
+import EncoderDecoder
 from termcolor import colored
 import network
 import os.path
 import os
-import pickle
+
 
 print(colored("Successfully imported packages", "green"))
 
@@ -48,6 +49,9 @@ eval_ds = eval_ds.batch(BATCH_SIZE, drop_remainder=True)
 print(colored("Train and Eval datasets created", "green"))
 
 print(dataset.detokenize(en_train[0], en_map) + " " + dataset.detokenize(es_train[0], es_map))
+
+EncDecModel = EncoderDecoder.EncDec(VOCAB_INP_SIZE, VOCAB_OUT_SIZE, UNITS)
+print(EncDecModel.summary())
 
 NMTAttn = network.NMTAttn(VOCAB_INP_SIZE, VOCAB_OUT_SIZE, UNITS, n_encoder=3, n_decoder=3, n_attn_heads=1, dropout=0.03, mode='test')
 NMTAttn.model(np.array([1, 2, 3]))

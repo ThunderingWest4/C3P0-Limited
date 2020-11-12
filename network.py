@@ -11,40 +11,62 @@ class NMTAttn():
 
     def __init__(self, input_vocab, target_vocab, d_model, n_encoder, n_decoder, n_attn_heads, dropout, mode):
         # constructs network
-        inp_encoder = self.input_encoder_fn(input_vocab, d_model, n_encoder)
-        pre_attention_dec = self.pre_attn_decoder(mode, target_vocab, d_model)
+        encoder = self.encoder(input_vocab, d_model, n_encoder)
+        decoder = self.decoder(target_vocab, d_model)
 
         model = tk.Sequential(
 
+            # ENCODER SECTION
+            # getting layers from encoder block to overall model
+            [layer for layer in encoder.layers],
+
+            # ATTENTION SECTION
             # get the Select thing working - [0,1,0,1]
 
             #tflat.ParallelCombination(inp_encoder, pre_attention_dec), 
-            tfl.Lambda(function=pre_attn_inp, output_shape=4), 
+            tfl.Lambda(function=self.pre_attn_inp, output_shape=4), 
             tfl.Residual(tfl.Attention(d_model, n_attn_heads, dropout, mode)),
 
             # Another Select layer - [0, 2]
 
-            [tfl.LSTM(d_model) for _ in range(n_decoder)], 
-
-            tfl.Dense(target_vocab),
-            tf.nn.log_softmax()
+            # DECODER SECTION
+            # getting layers from decoder sequential into overall model sequential
+            [layer for layer in decoder.layers] 
 
         )
 
         self.model = model
 
-    def input_encoder_fn(self, input_vocab_size, d_model, n_encoder) -> tk.Sequential:
+    def encoder(self, input_vocab_size, d_model) -> tk.Sequential:
+        # LSTM VS GRUs
+        # LSTMs are older and have 3 gates (input, output, forget) vs the GRU's 2 gates (update, reset) and greater efficiency
         return tk.Sequential(
             tfl.Embedding(input_vocab_size, d_model), 
-            [tfl.LSTM(d_model) for i in range(n_encoder)]
+            tfl.GRU(
+              d_model, 
+              return_sequences=True,
+              return_state=True,
+              recurrent_initializer = 'glorot_uniform' # draws samples (initial weights) from uniform distr btwn -lim, lim where lim = sqrt( 6 / (num_inps + num_outs) )
+            )
         )
 
-    def pre_attn_decoder(self, mode, target_vocab_size, d_model) -> tk.Sequential:
+    def decoder(self, target_vocab_size, d_model) -> tk.Sequential:
         return tk.Sequential(
-            ShiftRight(mode=mode), 
             tfl.Embedding(target_vocab_size, d_model), 
-            tfl.LSTM(d_model)
+            tfl.GRU(
+              d_model, 
+              return_sequences=True,
+              return_state=True,
+              recurrent_initializer = 'glorot_uniform' # draws samples (initial weights) from uniform distr btwn -lim, lim where lim = sqrt( 6 / (num_inps + num_outs) )
+            ),
+            tfl.Dense(target_vocab_size),
+            tf.nn.log_softmax()
         )
+
+    def Attention():
+      pass
+
+
 
     def pre_attn_inp(self, encoder_activ, decoder_activ, inps) -> (np.array, np.array, np.array, np.array):
         keys = encoder_activ
@@ -60,7 +82,7 @@ class NMTAttn():
 
 
 """
-SHIFTRIGHT AND _ZERO_PAD METHOD COPIED FROM TRAX GITHUB
+SHIFTRIGHT AND _ZERO_PAD METHOD COPIED AND MOFIDIED FROM TRAX GITHUB REPOSITORY
 """
 def _zero_pad(x, pad, axis):
   """Helper for jnp.pad with 0s for single-axis case."""
