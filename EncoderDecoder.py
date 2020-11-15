@@ -2,11 +2,12 @@ from tensorflow.keras import layers as layers
 import tensorflow.keras as keras
 import tensorflow as tf
 import numpy as np
-from math import log
+import time
+from termcolor import colored
 
 class EncDec():
 
-    def __init__(self, input_vocab, target_vocab, embedding_dim, units, batch_size, epochs, inpmap, targmap):
+    def __init__(self, input_vocab, target_vocab, embedding_dim, units, batch_size, inpmap, targmap):
 
         # constructs network
         
@@ -16,23 +17,37 @@ class EncDec():
         self.batch_size = batch_size
         self.embed_dim = embedding_dim
         self.units = units
-        self.epochs = epochs
         self.inmap = inpmap
         self.outmap = targmap
 
         self.encoder = EncDec.Encoder(input_vocab, embedding_dim, units, batch_size)
         self.decoder = EncDec.Decoder(target_vocab, embedding_dim, units, batch_size)
 
-        #self.model = model
+        print(colored("Encoder and Decoder models created! Ready for training", "green"))
 
-    def train(self):
+
+    def train(self, data, epochs, steps_per_epoch):
         self.optimizer = keras.optimizers.Adam(0.01)
         self.loss_obj = keras.losses.SparseCategoricalCrossentropy(
             from_logits=True,
             reduction='none')
 
-        for ep in range(self.epochs):
-            do stuff
+        for ep in range(epochs):
+            start = time.time()
+
+            enchid = hidden_init(self.batch_size, self.units)
+            total_loss = 0
+
+            for (batch, (inp, targ)) in enumerate(data.take(steps_per_epoch)):
+                
+                batch_loss = self.train_step(inp, targ, enchid)
+                total_loss += batch_loss
+
+                if(batch%100 == 0): 
+                    print(f"Epoch {ep+1} | Batch {batch} | Loss {batch_loss}")
+            
+            print(colored(f"Epoch {ep+1} completed | Loss {total_loss/steps_per_epoch}", "green"))
+            print(f"Time for epoch {ep+1}: {time.time()-start} seconds")
 
         
             
