@@ -50,7 +50,7 @@ print(colored("Train and Eval datasets created", "green"))
 
 print(dataset.detokenize(en_train[0], en_map) + " " + dataset.detokenize(es_train[0], es_map))
 
-EncDecModel = EncoderDecoder.EncDec(VOCAB_INP_SIZE, VOCAB_OUT_SIZE, EMBEDDING_DIM, UNITS, BATCH_SIZE, EPOCHS)
+EncDecModel = EncoderDecoder.EncDec(VOCAB_INP_SIZE, VOCAB_OUT_SIZE, EMBEDDING_DIM, UNITS, BATCH_SIZE, EPOCHS, en_map, es_map)
 
 NMTAttn = network.NMTAttn(VOCAB_INP_SIZE, VOCAB_OUT_SIZE, UNITS, n_encoder=3, n_decoder=3, n_attn_heads=1, dropout=0.03, mode='test')
 NMTAttn.model(np.array([1, 2, 3]))

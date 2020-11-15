@@ -6,7 +6,7 @@ from math import log
 
 class EncDec():
 
-    def __init__(self, input_vocab, target_vocab, embedding_dim, units, batch_size, epochs):
+    def __init__(self, input_vocab, target_vocab, embedding_dim, units, batch_size, epochs, inpmap, targmap):
 
         # constructs network
         
@@ -17,6 +17,8 @@ class EncDec():
         self.embed_dim = embedding_dim
         self.units = units
         self.epochs = epochs
+        self.inmap = inpmap
+        self.outmap = targmap
 
         self.encoder = EncDec.Encoder(input_vocab, embedding_dim, units, batch_size)
         self.decoder = EncDec.Decoder(target_vocab, embedding_dim, units, batch_size)
@@ -29,6 +31,9 @@ class EncDec():
             from_logits=True,
             reduction='none')
 
+        for ep in range(self.epochs):
+            do stuff
+
         
             
     def loss(self, ans, pred):
@@ -40,7 +45,27 @@ class EncDec():
         return tf.reduce_mean(loss)
 
     def train_step(self, inp, targ, hid):
-        pass
+        loss = 0
+
+        with tf.GradientTape() as tape:
+            encout, enchid = self.encoder(inp, hid)
+
+            decin = tf.expand_dims([self.outmap.word_index['<s>']]*self.batch_size, 1)
+
+            for t in range(1, targ.shape[1]):
+                pred, dec_hid, _ = self.decoder(decin, enchid, encout)
+
+                loss += loss(self, targ[:,t], pred) # doing loss onto the predicted translation
+
+                decin = tf.expand_dims(targ[:,t], 1) #teacher forcing - feeding in answer as input
+
+            batch_loss = int(loss / targ.shape[1]) # total loss / n_examples = avg loss
+            vars = self.encoder.trainable_variables + self.decoder.trainable_variables
+            grads = tape.gradient(loss, vars) #finds gradient between loss and vars
+            self.optimizer.apply_gradients(zip(grads, vars))
+            
+            return grads
+
 
     class Encoder(keras.Model):
         def __init__(self, input_vocab, embed_dim, encoder_units, batch_size):
